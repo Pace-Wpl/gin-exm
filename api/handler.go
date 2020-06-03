@@ -32,8 +32,8 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("sessionID", sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
-	c.JSON(http.StatusCreated, u)
+	c.SetCookie(def.COOKIE_NAEM, sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
+	c.JSON(http.StatusCreated, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
 func Login(c *gin.Context) {
@@ -44,14 +44,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	pwd, err := dbops.GetUserCredential(u.Name)
-	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusBadRequest, def.ErrorInternalError)
-	}
-
-	if pwd != u.Password {
+	//密码验证
+	if !ValidateUserPwd(u.Name, u.Password) {
 		c.JSON(http.StatusUnauthorized, def.ErrorNotAuthUser)
+		return
 	}
 
 	sID, err := session.GenerateNewSession(u.Name)
@@ -62,87 +58,56 @@ func Login(c *gin.Context) {
 	}
 
 	c.SetCookie("sessionID", sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"username": u.Name})
+	c.JSON(http.StatusOK, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
 func GetUserInfo(c *gin.Context) {
 	uname := c.Param("user_name")
-	u := &def.ReqUser{Name: uname, Password: "123"}
-	c.JSON(200, u)
-	// //验证用户是否登陆
-	// if !ValidateLogin(w, r) {
-	// 	log.Printf("Unauthorized user\n")
-	// 	return
-	// }
+	u, err := dbops.GetUser(uname)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+	}
 
-	// uname := p.ByName("user_name")
-	// user, err := dbops.GetUser(uname)
-	// if err != nil {
-	// 	sendErrorResponse(w, def.ErrorDBError)
-	// 	return
-	// }
-
-	// userInfo := &def.UserInfo{Id: user.Id, Pwd: user.Pwd, Name: user.Username}
-	// if resp, err := json.Marshal(userInfo); err != nil {
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// } else {
-	// 	sendNormalResponse(w, string(resp), 200)
-	// }
-
+	c.JSON(http.StatusOK, u)
 }
 
 func Logout(c *gin.Context) {
-	// sid := r.Header.Get(HEADER_FIELD_SESSION)
-	// if len(sid) == 0 {
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// }
-	// session.DeleteExpiredSession(sid)
-	// sendNormalResponse(w, "Logout ok !", 200)
-	// //	io.WriteString(w, "user logout!")
-	resp := &def.RespMes{Mes: "logout", Code: 200}
-	c.JSON(200, resp)
+	cookie, err := c.Request.Cookie(def.COOKIE_NAEM)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+	}
+
+	if err = session.DelSession(cookie.Value); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+	}
+
+	c.JSON(http.StatusOK, &def.RespMes{Mes: "logout successful!", Code: 200})
 }
 
 func ModifyPwd(c *gin.Context) {
-	// //验证用户
-	// if !ValidateUser(w, r, p) {
-	// 	log.Printf("Unauthorized user\n")
-	// 	return
-	// }
-
-	// uname := p.ByName("user_name")
-	// res, _ := ioutil.ReadAll(r.Body)
-	// ubody := &def.UserModifyPwd{}
-	// if err := json.Unmarshal(res, ubody); err != nil {
-	// 	log.Printf("unmarshal error!")
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// }
-
-	// if !ValidateUserPwd(w, ubody.PTPwd, uname) {
-	// 	log.Printf("pass word error!")
-	// 	return
-	// }
-
-	// if err := dbops.ModifyUserPwd(uname, ubody.CPwd); err != nil {
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// }
-
-	// if resp, err := json.Marshal(ubody); err != nil {
-	// 	log.Printf("marshal error!")
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// } else {
-	// 	sendNormalResponse(w, string(resp), 200)
-	// }
-
-	// //	io.WriteString(w, "Modify password!")
 	uname := c.Param("user_name")
-	resp := &def.RespMes{Mes: uname, Code: 200}
-	c.JSON(200, resp)
+	u := &def.ReqModifyPwd{}
+	if err := c.BindJSON(u); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
+		return
+	}
+
+	//密码验证
+	if !ValidateUserPwd(uname, u.Pwd) {
+		c.JSON(http.StatusUnauthorized, def.ErrorNotAuthUser)
+		return
+	}
+
+	if err := dbops.ModifyPwd(uname, u.NewPwd); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+	}
+
+	c.JSON(http.StatusOK, &def.RespMes{Mes: "modify successful!", Code: 200})
 }
 
 func ModifyUserInfo(c *gin.Context) {

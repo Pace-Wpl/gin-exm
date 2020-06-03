@@ -39,13 +39,13 @@ func IsSessionExpried(sid string) (string, bool) {
 	if ok {
 		res, err := redis.Bytes(conn.Do("GET", sid))
 		if err != nil {
-			log.Println(error.Error)
+			log.Println(err.Error())
 			return "", true
 		}
 
 		session := &def.Session{}
 		if err = json.Unmarshal(res, session); err != nil {
-			log.Println(error.Error)
+			log.Println(err.Error())
 			return "", true
 		}
 		return session.Name, false

@@ -10,7 +10,7 @@ func RegisterHandlers() *gin.Engine {
 	r.POST("/user/login", Login)
 	r.GET("/user/:user_name", GetUserInfo)
 	r.DELETE("/user/:user_name", Logout)
-	r.PUT("/user/:user_name/pwd/modify", ModifyPwd)
+	r.PUT("/user/:user_name/pwd", ModifyPwd)
 	r.PUT("/user/:user_name", ModifyUserInfo)
 
 	return r
