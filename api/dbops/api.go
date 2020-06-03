@@ -18,3 +18,12 @@ func GetUser(uname string) (*def.User, error) {
 	}
 	return user, nil
 }
+
+func GetUserCredential(uname string) (string, error) {
+	var pwd string
+	if err := db.Table("users").Where("username = ?", uname).First(&pwd).Error; err != nil {
+		return "", err
+	}
+
+	return pwd, nil
+}

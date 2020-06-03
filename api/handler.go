@@ -1,57 +1,68 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
+	"github.com/gin-exm/api/dbops"
 	"github.com/gin-exm/api/def"
+	"github.com/gin-exm/api/session"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterUser(c *gin.Context) {
 	u := &def.ReqUser{}
 	if err := c.BindJSON(u); err != nil {
-		c.JSON(400, def.ErrorRequestBodyPaseFailed)
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
 		return
 	}
-	c.JSON(200, u)
+
+	uu := &def.User{Username: u.Name, Pwd: u.Password, Icon: def.DEFAULT_ICON}
+	if err := dbops.AddUser(uu); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
+
+	sID, err := session.GenerateNewSession(uu.Username)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
+
+	c.SetCookie("sessionID", sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
+	c.JSON(http.StatusCreated, u)
 }
 
 func Login(c *gin.Context) {
-	uname := c.PostForm("name")
-	ps := c.PostForm("password")
-	if uname == "pace" && ps == "123" {
-		resp := &def.RespMes{Code: 002, Mes: "登录成功！"}
-		c.JSON(200, resp)
+	u := &def.ReqUser{}
+	if err := c.BindJSON(u); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
+		return
 	}
-	c.JSON(401, def.ErrorNotAuthUser)
-	// res, _ := ioutil.ReadAll(r.Body)
-	// ubody := &def.UserCredential{}
 
-	// if err := json.Unmarshal(res, ubody); err != nil {
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// }
+	pwd, err := dbops.GetUserCredential(u.Name)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, def.ErrorInternalError)
+	}
 
-	// uname := p.ByName("user_name")
-	// log.Printf("url name: %v", uname)
-	// log.Printf("request name : %v", ubody.Username)
-	// if uname != ubody.Username {
-	// 	sendErrorResponse(w, def.ErrorNotAuthUser)
-	// 	return
-	// }
+	if pwd != u.Password {
+		c.JSON(http.StatusUnauthorized, def.ErrorNotAuthUser)
+	}
 
-	// if !ValidateUserPwd(w, ubody.Pwd, ubody.Username) {
-	// 	log.Printf("pass word error!")
-	// 	return
-	// }
+	sID, err := session.GenerateNewSession(u.Name)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
 
-	// id := session.GenerateNewSessionId(ubody.Username)
-	// sup := &def.SignedUp{Success: true, SessionId: id}
-
-	// if resp, err := json.Marshal(sup); err != nil {
-	// 	sendErrorResponse(w, def.ErrorInternalFaults)
-	// 	return
-	// } else {
-	// 	sendNormalResponse(w, string(resp), 201)
-	// }
+	c.SetCookie("sessionID", sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{"username": u.Name})
 }
 
 func GetUserInfo(c *gin.Context) {
