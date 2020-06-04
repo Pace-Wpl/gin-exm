@@ -1,0 +1,32 @@
+#api配置
+httpport: 8000
+appname: Api
+
+#日志配置
+log:
+    ginlogpath: ../logs/api.log
+    ginloglevel: debug
+    syslogpath: ../logs/sys.log
+    sysloglevel: debug
+
+#redis配置
+redis:
+    addr:  127.0.0.1:6379
+    maxidle: 16
+    maxactive: 32
+    idletimeout: 120
+
+#etcd配置
+etcd:
+    addr: 127.0.0.1:2379
+    timeout: 5
+    seckeyprefix:
+    secproductkey:
+
+#mysql配置
+mysql:
+    addr: 127.0.0.1:3306
+    user: pace
+    pwd: 123
+    database: piliVideo
+    config:   charset=utf8

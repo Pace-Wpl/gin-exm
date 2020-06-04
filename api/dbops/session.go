@@ -3,7 +3,6 @@ package dbops
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/gin-exm/api/def"
 	"github.com/gomodule/redigo/redis"
@@ -39,13 +38,13 @@ func IsSessionExpried(sid string) (string, bool) {
 	if ok {
 		res, err := redis.Bytes(conn.Do("GET", sid))
 		if err != nil {
-			log.Println(err.Error())
+			def.Log.Warnln(err.Error())
 			return "", true
 		}
 
 		session := &def.Session{}
 		if err = json.Unmarshal(res, session); err != nil {
-			log.Println(err.Error())
+			def.Log.Warnln(err.Error())
 			return "", true
 		}
 		return session.Name, false

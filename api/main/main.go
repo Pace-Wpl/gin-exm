@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-exm/api/def"
+	"github.com/gin-gonic/gin"
+)
 
 func RegisterHandlers() *gin.Engine {
 	r := gin.Default()
@@ -19,5 +22,10 @@ func RegisterHandlers() *gin.Engine {
 func main() {
 	r := RegisterHandlers()
 
-	r.Run(":8000")
+	//初始化
+	if err := initAll(); err != nil {
+		panic(err.Error())
+	}
+
+	r.Run(":" + def.Conf.Httpport)
 }

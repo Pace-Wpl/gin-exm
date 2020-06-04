@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-exm/api/dbops"
@@ -13,21 +12,21 @@ import (
 func RegisterUser(c *gin.Context) {
 	u := &def.ReqUser{}
 	if err := c.BindJSON(u); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
 		return
 	}
 
 	uu := &def.User{Username: u.Name, Pwd: u.Password, Icon: def.DEFAULT_ICON}
 	if err := dbops.AddUser(uu); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
 
 	sID, err := session.GenerateNewSession(uu.Username)
 	if err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
@@ -39,7 +38,7 @@ func RegisterUser(c *gin.Context) {
 func Login(c *gin.Context) {
 	u := &def.ReqUser{}
 	if err := c.BindJSON(u); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
 		return
 	}
@@ -52,7 +51,7 @@ func Login(c *gin.Context) {
 
 	sID, err := session.GenerateNewSession(u.Name)
 	if err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
@@ -65,7 +64,7 @@ func GetUserInfo(c *gin.Context) {
 	uname := c.Param("user_name")
 	u, err := dbops.GetUser(uname)
 	if err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 	}
 
@@ -75,12 +74,12 @@ func GetUserInfo(c *gin.Context) {
 func Logout(c *gin.Context) {
 	cookie, err := c.Request.Cookie(def.COOKIE_NAEM)
 	if err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 	}
 
 	if err = session.DelSession(cookie.Value); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 	}
 
@@ -91,7 +90,7 @@ func ModifyPwd(c *gin.Context) {
 	uname := c.Param("user_name")
 	u := &def.ReqModifyPwd{}
 	if err := c.BindJSON(u); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
 		return
 	}
@@ -103,7 +102,7 @@ func ModifyPwd(c *gin.Context) {
 	}
 
 	if err := dbops.ModifyPwd(uname, u.NewPwd); err != nil {
-		log.Println(err.Error())
+		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 	}
 

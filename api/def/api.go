@@ -1,5 +1,13 @@
 package def
 
+import (
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	Log = log.New()
+)
+
 const (
 	//默认头像dir
 	DEFAULT_ICON = "../icon/default.jpg"
