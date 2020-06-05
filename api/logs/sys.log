@@ -1,4 +1,2 @@
 
-time="2020-06-05 10:58:00" level=info msg="pace:123@tcp(127.0.0.1:3306)/piliVideo?charset=utf8"
-time="2020-06-05 11:00:32" level=warning msg="Key: 'ReqUser.Name' Error:Field validation for 'Name' failed on the 'required' tag"
-time="2020-06-05 11:11:08" level=info msg="pace:123@tcp(127.0.0.1:3306)/piliVideo?charset=utf8"
+

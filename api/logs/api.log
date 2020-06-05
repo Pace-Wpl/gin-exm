@@ -1,15 +1,1 @@
-[GIN-debug] Listening and serving HTTP on :8000
-[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
 
-[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
- - using env:	export GIN_MODE=release
- - using code:	gin.SetMode(gin.ReleaseMode)
-
-[GIN-debug] POST   /user                     --> main.RegisterUser (3 handlers)
-[GIN-debug] POST   /user/login               --> main.Login (3 handlers)
-[GIN-debug] GET    /user/:user_name          --> main.GetUserInfo (3 handlers)
-[GIN-debug] DELETE /user/:user_name          --> main.Logout (3 handlers)
-[GIN-debug] PUT    /user/:user_name/pwd      --> main.ModifyPwd (3 handlers)
-[GIN-debug] PUT    /user/:user_name          --> main.ModifyUserInfo (3 handlers)
-[GIN-debug] Listening and serving HTTP on :8000
-[GIN] 2020/06/05 - 11:11:50 | 200 |    1.206942ms |             ::1 | POST     "/user/login"
