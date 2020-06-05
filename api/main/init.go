@@ -33,8 +33,11 @@ func initLog() error {
 	if err != nil {
 		return err
 	}
-
 	def.Log.Out = io.MultiWriter(f1, os.Stdout)
+
+	def.Log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	return nil
 }

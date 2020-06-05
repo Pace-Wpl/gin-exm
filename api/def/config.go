@@ -10,8 +10,11 @@ var (
 )
 
 type Config struct {
-	Httpport string
-	AppName  string
+	Httpport       string
+	AppName        string
+	SessionExpired int
+	CookieKey      string
+	Domain         string
 
 	Log   LogConf
 	Redis RedisConf

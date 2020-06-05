@@ -1,6 +1,11 @@
 #api配置
+domain: localhost
 httpport: 8000
 appname: Api
+#session 过期时间：60 *60 *24 = 86400s 24h
+sessionexpired: 86400 
+cookiename: sessionID
+
 
 #日志配置
 log:
@@ -12,8 +17,11 @@ log:
 #redis配置
 redis:
     addr:  127.0.0.1:6379
+    #最大空闲数
     maxidle: 16
+    #最大连接数，0表示无限制
     maxactive: 32
+    #超时时间
     idletimeout: 120
 
 #etcd配置

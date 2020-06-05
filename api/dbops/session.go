@@ -20,7 +20,7 @@ func SetSession(session *def.Session) error {
 		return err
 	}
 
-	_, err = conn.Do("SET", session.ID, value, "EX", def.SESSION_EXPIRED)
+	_, err = conn.Do("SET", session.ID, value, "EX", def.Conf.SessionExpired)
 	if err != nil {
 		return err
 	}

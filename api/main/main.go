@@ -20,12 +20,11 @@ func RegisterHandlers() *gin.Engine {
 }
 
 func main() {
-	r := RegisterHandlers()
-
 	//初始化
 	if err := initAll(); err != nil {
 		panic(err.Error())
 	}
+	r := RegisterHandlers()
 
 	r.Run(":" + def.Conf.Httpport)
 }

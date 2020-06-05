@@ -31,7 +31,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(def.COOKIE_NAEM, sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
+	c.SetCookie(def.Conf.CookieKey, sID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
 	c.JSON(http.StatusCreated, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
@@ -56,7 +56,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("sessionID", sID, def.SESSION_EXPIRED, "/", "localhost", false, true)
+	c.SetCookie(def.Conf.CookieKey, sID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
 	c.JSON(http.StatusOK, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
@@ -72,7 +72,7 @@ func GetUserInfo(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	cookie, err := c.Request.Cookie(def.COOKIE_NAEM)
+	cookie, err := c.Request.Cookie(def.Conf.CookieKey)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)

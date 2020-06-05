@@ -4,17 +4,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	Log = log.New()
-)
-
 const (
 	//默认头像dir
 	DEFAULT_ICON = "../icon/default.jpg"
-	//session过期时间，60s * 60m * 24h
-	SESSION_EXPIRED = 60 * 60 * 24
-	//cookie name
-	COOKIE_NAEM = "sessionID"
+)
+
+var (
+	Log = log.New()
 )
 
 type RespMes struct {
