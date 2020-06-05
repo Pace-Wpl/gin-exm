@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterHandlers() *gin.Engine {
+func registerHandlers() *gin.Engine {
 	r := gin.Default()
 
 	//users handeler
@@ -24,7 +24,14 @@ func main() {
 	if err := initAll(); err != nil {
 		panic(err.Error())
 	}
-	r := RegisterHandlers()
 
+	//开启任务
+	if err := startAll(); err != nil {
+		panic(err.Error())
+	}
+	defer close()
+
+	//注册路由
+	r := registerHandlers()
 	r.Run(":" + def.Conf.Httpport)
 }

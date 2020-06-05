@@ -42,14 +42,24 @@ func initLog() error {
 	return nil
 }
 
-func initEtcd() error {
+func initDB() error {
+	var err error
+	if err = dbops.InitDB(); err != nil {
+		return err
+	}
+
+	if err = dbops.InitRedis(); err != nil {
+		return err
+	}
+
+	if err = dbops.InitEtcd(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func initDB() error {
-	return dbops.InitDB()
-}
-
+//初始化，包括配置文件，日志，mysql，redis，etcd模块
 func initAll() error {
 	var err error
 
@@ -65,17 +75,26 @@ func initAll() error {
 		return err
 	}
 
-	//初始化etcd
-	if err = initEtcd(); err != nil {
-		def.Log.Fatal(err.Error())
-		return err
-	}
-
-	//初始化db：mysql，redis
+	//初始化db：mysql，redis, etcd
 	if err = initDB(); err != nil {
 		def.Log.Fatal(err.Error())
 		return err
 	}
 
 	return err
+}
+
+//开启任务，包括Etcd任务
+func startAll() error {
+	var err error
+	if err = dbops.PrepareEtcd(); err != nil {
+		def.Log.Fatal(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func close() {
+	dbops.Close()
 }

@@ -1,12 +1,15 @@
 package def
 
+import "sync"
+
 const (
 	//config dir
 	CONFIG_DIR = "../conf/config.yaml"
 )
 
 var (
-	Conf = &Config{}
+	ProductConfig sync.Map
+	Conf          = &Config{}
 )
 
 type Config struct {
@@ -20,6 +23,14 @@ type Config struct {
 	Redis RedisConf
 	Etcd  EtcdConf
 	Mysql MysqlConf
+}
+
+type ProductConf struct {
+	ProductID int
+	StartTime int64
+	EndTime   int64
+	Status    int
+	Total     int
 }
 
 type LogConf struct {
@@ -37,10 +48,10 @@ type RedisConf struct {
 }
 
 type EtcdConf struct {
-	Addr          string
-	Timeout       int
-	SecKeyPrefix  string
-	SecProductKey string
+	Addr       string
+	Timeout    int
+	PrefixKey  string
+	ProductKey string
 }
 
 type MysqlConf struct {
