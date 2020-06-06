@@ -15,13 +15,12 @@ func initConfig() error {
 	if err := configor.Load(def.Conf, def.CONFIG_DIR); err != nil {
 		return err
 	}
-	log.Info(def.Conf)
+	log.Debugln(def.Conf)
 	return nil
 }
 
 func initLog() error {
 	// init gin log
-	gin.DisableConsoleColor()
 	f, err := os.OpenFile(def.Conf.Log.GinLogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
 	if err != nil {
 		return err

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	mvccpb "github.com/etcd-io/etcd/mvcc/mvccpb"
+	mvccpb "github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/gin-exm/api/def"
 )
 
@@ -17,25 +17,27 @@ func loadProductConfig(key string) error {
 
 	var productInfo []def.ProductConf
 	for _, v := range resp.Kvs {
-		def.Log.Infoln(v)
 		err = json.Unmarshal(v.Value, &productInfo)
 		if err != nil {
 			return err
 		}
 	}
 
+	def.Log.Infoln("load product config")
 	updateProductInfo(productInfo)
 	return nil
 }
 
 func updateProductInfo(productInfo []def.ProductConf) {
+	def.Log.Infoln("updata product info")
 	for _, v := range productInfo {
+		def.Log.Debugln(v)
 		def.ProductConfig.Store(v.ProductID, &v)
 	}
 }
 
 func watchProductKey(key string) {
-	def.Log.Infoln("watching key :" + key)
+	def.Log.Debugln("watching key :" + key)
 	for {
 		rch := etcdClient.Watch(context.Background(), key)
 		var productInfo []def.ProductConf
@@ -59,6 +61,7 @@ func watchProductKey(key string) {
 			}
 
 			if getConfSucc {
+				def.Log.Infoln("watch product info updata")
 				updateProductInfo(productInfo)
 			}
 		}
@@ -77,7 +80,7 @@ func PrepareEtcd() error {
 		def.Conf.Etcd.PrefixKey = def.Conf.Etcd.PrefixKey + "/"
 	}
 	productKey := def.Conf.Etcd.PrefixKey + def.Conf.Etcd.ProductKey
-	def.Log.Infoln("productKey:" + productKey)
+	def.Log.Debugln("productKey:" + productKey)
 
 	//初次获取etcd配置
 	if err := loadProductConfig(productKey); err != nil {

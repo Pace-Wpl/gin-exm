@@ -21,7 +21,7 @@ var (
 func InitDB() error {
 	str := def.Conf.Mysql.User + ":" + def.Conf.Mysql.Pwd + "@tcp(" + def.Conf.Mysql.Addr + ")/" +
 		def.Conf.Mysql.Database + "?" + def.Conf.Mysql.Config
-	def.Log.Infoln(str)
+	def.Log.Debugln(str)
 	db, err = gorm.Open("mysql", str)
 	if err != nil {
 		return err
