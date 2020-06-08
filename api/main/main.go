@@ -16,6 +16,11 @@ func registerHandlers() *gin.Engine {
 	r.PUT("/user/:user_name/pwd", ModifyPwd)
 	r.PUT("/user/:user_name", ModifyUserInfo)
 
+	//business handeler
+	r.GET("/product", ListProduct)
+	r.GET("/product/:product_id", GetProduct)
+	r.GET("/product/:product_id/seckill", ProductSecKill)
+
 	return r
 }
 

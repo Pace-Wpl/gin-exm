@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-exm/api/dbops"
 	"github.com/gin-exm/api/def"
@@ -137,4 +138,38 @@ func ModifyUserInfo(c *gin.Context) {
 	uname := c.Param("user_name")
 	resp := &def.RespMes{Mes: uname, Code: 200}
 	c.JSON(200, resp)
+}
+
+func ListProduct(c *gin.Context) {
+	var productList []def.ProductConf
+	var err error
+	if productList, err = dbops.ListProduct(); err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, productList)
+}
+
+func GetProduct(c *gin.Context) {
+	pid, err := strconv.Atoi(c.Param("product_id"))
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
+
+	p, err := dbops.GetProduct(pid)
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
+func ProductSecKill(c *gin.Context) {
+
 }

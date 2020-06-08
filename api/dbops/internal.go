@@ -31,8 +31,9 @@ func loadProductConfig(key string) error {
 func updateProductInfo(productInfo []def.ProductConf) {
 	def.Log.Infoln("updata product info")
 	for _, v := range productInfo {
+		t := v
 		def.Log.Debugln(v)
-		def.ProductConfig.Store(v.ProductID, &v)
+		def.ProductConfig.Store(v.ProductID, &t)
 	}
 }
 
