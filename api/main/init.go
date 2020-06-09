@@ -15,7 +15,7 @@ func initConfig() error {
 	if err := configor.Load(def.Conf, def.CONFIG_DIR); err != nil {
 		return err
 	}
-	log.Debugln(def.Conf)
+	log.Infoln(def.Conf)
 	return nil
 }
 

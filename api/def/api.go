@@ -1,12 +1,15 @@
 package def
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	//默认头像dir
-	DEFAULT_ICON = "../icon/default.jpg"
+	PRODUCT_STATUS_NOMAL   = 0
+	PRODUCT_STATUS_SELLOUT = 1
+	PRODUCT_STATUS_END     = 2
 )
 
 var (
@@ -28,6 +31,16 @@ type ReqUser struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ReqSecKill struct {
+	ProductID  int
+	UserID     string
+	Sourct     string
+	AuthCode   string
+	Time       string
+	Nance      string
+	AccessTime time.Time
+}
+
 type User struct {
 	Username string `json:"name"`
 	Pwd      string `json:"password"`
@@ -35,6 +48,6 @@ type User struct {
 }
 
 type Session struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
+	UserId string `json:"user_id"`
+	ID     string `json:"id"`
 }

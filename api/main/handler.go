@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-exm/api/dbops"
 	"github.com/gin-exm/api/def"
@@ -18,21 +19,22 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	uu := &def.User{Username: u.Name, Pwd: u.Password, Icon: def.DEFAULT_ICON}
+	uu := &def.User{Username: u.Name, Pwd: u.Password, Icon: def.Conf.DefaultIcon}
 	if err := dbops.AddUser(uu); err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
 
-	sID, err := session.GenerateNewSession(uu.Username)
+	token, err := session.GenerateNewSession(uu.Username)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
 
-	c.SetCookie(def.Conf.CookieKey, sID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
+	c.SetCookie(def.Conf.CookieKey1, token.ID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
+	c.SetCookie(def.Conf.CookieKey2, token.UserId, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
 	c.JSON(http.StatusCreated, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
@@ -50,14 +52,15 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	sID, err := session.GenerateNewSession(u.Name)
+	token, err := session.GenerateNewSession(u.Name)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
 
-	c.SetCookie(def.Conf.CookieKey, sID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
+	c.SetCookie(def.Conf.CookieKey1, token.ID, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
+	c.SetCookie(def.Conf.CookieKey2, token.UserId, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
 	c.JSON(http.StatusOK, &def.RespMes{Mes: "welcome " + u.Name, Code: 200})
 }
 
@@ -67,21 +70,24 @@ func GetUserInfo(c *gin.Context) {
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
 	}
 
 	c.JSON(http.StatusOK, u)
 }
 
 func Logout(c *gin.Context) {
-	cookie, err := c.Request.Cookie(def.Conf.CookieKey)
+	cookie, err := c.Request.Cookie(def.Conf.CookieKey1)
 	if err != nil {
 		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
+		return
 	}
 
 	if err = session.DelSession(cookie.Value); err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
 	}
 
 	c.JSON(http.StatusOK, &def.RespMes{Mes: "logout successful!", Code: 200})
@@ -105,6 +111,7 @@ func ModifyPwd(c *gin.Context) {
 	if err := dbops.ModifyPwd(uname, u.NewPwd); err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		return
 	}
 
 	c.JSON(http.StatusOK, &def.RespMes{Mes: "modify successful!", Code: 200})
@@ -141,7 +148,7 @@ func ModifyUserInfo(c *gin.Context) {
 }
 
 func ListProduct(c *gin.Context) {
-	var productList []def.ProductConf
+	var productList []*def.ProductConf
 	var err error
 	if productList, err = dbops.ListProduct(); err != nil {
 		def.Log.Warnln(err.Error())
@@ -156,14 +163,14 @@ func GetProduct(c *gin.Context) {
 	pid, err := strconv.Atoi(c.Param("product_id"))
 	if err != nil {
 		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
 		return
 	}
 
 	p, err := dbops.GetProduct(pid)
 	if err != nil {
 		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
+		c.JSON(http.StatusOK, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
 		return
 	}
 
@@ -171,5 +178,45 @@ func GetProduct(c *gin.Context) {
 }
 
 func ProductSecKill(c *gin.Context) {
+	cookie1, err := c.Request.Cookie(def.Conf.CookieKey1)
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
+		return
+	}
+	cookie2, err := c.Request.Cookie(def.Conf.CookieKey2)
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
+		return
+	}
+	token := &def.Session{ID: cookie1.Value, UserId: cookie2.Value}
+	//用户token验证
+	if ValidateToken(token) {
+		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
+		return
+	}
 
+	pid, err := strconv.Atoi(c.Param("product_id"))
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusBadRequest, def.ErrorRequestBodyPaseFailed)
+		return
+	}
+	s := c.Query("src")
+	a := c.Query("authcode")
+	t := c.Query("time")
+	n := c.Query("nance")
+	//cookie 获取uid
+	uid := token.UserId
+
+	ReqKill := &def.ReqSecKill{Sourct: s, ProductID: pid, AuthCode: a, Time: t, Nance: n, AccessTime: time.Now(), UserID: uid}
+
+	//用户访问控制
+	if AntiSpam(ReqKill) {
+		def.Log.Warnln("用户:" + ReqKill.UserID + "访问过多！")
+		c.JSON(http.StatusOK, &def.ErrorServerBusy)
+		return
+	}
+	c.JSON(200, gin.H{"message": "秒杀访问成功"})
 }

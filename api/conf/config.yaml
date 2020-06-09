@@ -4,7 +4,13 @@ httpport: 8000
 appname: Api
 #session 过期时间：60 *60 *24 = 86400s 24h
 sessionexpired: 86400 
-cookiename: sessionID
+#cookie
+cookiekey1: tokenID
+cookiekey2: userID
+#默认头像dir
+defaulticon: ../icon/default.jpg
+#用户每秒访问限制
+usersecaccesslimit: 1
 
 
 #日志配置

@@ -6,18 +6,18 @@ import (
 	"github.com/gin-exm/api/utils"
 )
 
-func GenerateNewSession(username string) (string, error) {
+func GenerateNewSession(username string) (*def.Session, error) {
 	id, _ := utils.NewUUID()
-	session := &def.Session{ID: id, Name: username}
+	session := &def.Session{ID: id, UserId: username}
 
 	if err := dbops.SetSession(session); err != nil {
-		return "", err
+		return nil, err
 	}
-	return id, nil
+	return session, nil
 }
 
 func ReSetSession(sid, uname string) error {
-	session := &def.Session{ID: sid, Name: uname}
+	session := &def.Session{ID: sid, UserId: uname}
 
 	if err := dbops.SetSession(session); err != nil {
 		return err
@@ -29,6 +29,6 @@ func DelSession(sid string) error {
 	return dbops.DeleteSession(sid)
 }
 
-func IsSession(sid string) (string, bool) {
+func IsSessionExpried(sid string) (string, bool) {
 	return dbops.IsSessionExpried(sid)
 }

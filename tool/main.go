@@ -52,7 +52,7 @@ func SetLogConfToEtcd() {
 			StartTime: 1505008800,
 			EndTime:   1505012400,
 			Status:    0,
-			Total:     2000,
+			Total:     0,
 		},
 	)
 

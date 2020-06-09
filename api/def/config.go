@@ -13,11 +13,14 @@ var (
 )
 
 type Config struct {
-	Httpport       string
-	AppName        string
-	SessionExpired int
-	CookieKey      string
-	Domain         string
+	Httpport           string
+	AppName            string
+	SessionExpired     int
+	CookieKey1         string
+	CookieKey2         string
+	Domain             string
+	DefaultIcon        string
+	UserSecAccessLimit int
 
 	Log   LogConf
 	Redis RedisConf
@@ -26,11 +29,11 @@ type Config struct {
 }
 
 type ProductConf struct {
-	ProductID int
-	StartTime int64
-	EndTime   int64
-	Status    int
-	Total     int
+	ProductID int   `json:"product_id"`
+	StartTime int64 `json:"start_time"`
+	EndTime   int64 `json:"end_time"`
+	Status    int   `json:"status"`
+	Total     int   `json:"total"`
 }
 
 type LogConf struct {

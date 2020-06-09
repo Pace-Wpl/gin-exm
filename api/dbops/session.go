@@ -47,7 +47,7 @@ func IsSessionExpried(sid string) (string, bool) {
 			def.Log.Warnln(err.Error())
 			return "", true
 		}
-		return session.Name, false
+		return session.UserId, false
 	}
 	return "", true
 }

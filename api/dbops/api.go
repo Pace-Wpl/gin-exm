@@ -37,10 +37,10 @@ func ModifyPwd(uname, pwd string) error {
 	return nil
 }
 
-func ListProduct() ([]def.ProductConf, error) {
-	var productList []def.ProductConf
+func ListProduct() ([]*def.ProductConf, error) {
+	var productList []*def.ProductConf
 	def.ProductConfig.Range(func(key, value interface{}) bool {
-		productList = append(productList, value.(def.ProductConf))
+		productList = append(productList, value.(*def.ProductConf))
 		return true
 	})
 
