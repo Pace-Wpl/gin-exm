@@ -9,8 +9,10 @@ cookiekey1: tokenID
 cookiekey2: userID
 #默认头像dir
 defaulticon: ../icon/default.jpg
-#用户每秒访问限制
+#用户每秒访问频率限制
 usersecaccesslimit: 1
+#refer白名单
+referwhitelist: localhost
 
 
 #日志配置

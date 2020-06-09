@@ -10,6 +10,9 @@ const (
 	PRODUCT_STATUS_NOMAL   = 0
 	PRODUCT_STATUS_SELLOUT = 1
 	PRODUCT_STATUS_END     = 2
+	PRODUCT_ACTIVITY_PRE   = 0
+	PRODUCT_ACTIVITY_BEGIN = 1
+	PRODUCT_ACTIVITY_END   = 2
 )
 
 var (
@@ -19,6 +22,15 @@ var (
 type RespMes struct {
 	Code int    `json:"code"`
 	Mes  string `json:"message"`
+}
+
+type RespProductInfo struct {
+	ProductID int   `json:"product_id"`
+	StartTime int64 `json:"start_time"`
+	EndTime   int64 `json:"end_time"`
+	Status    int   `json:"status"`
+	Activity  int   `json:"activity"`
+	Total     int   `json:"total"`
 }
 
 type ReqModifyPwd struct {
@@ -32,13 +44,15 @@ type ReqUser struct {
 }
 
 type ReqSecKill struct {
-	ProductID  int
-	UserID     string
-	Sourct     string
-	AuthCode   string
-	Time       string
-	Nance      string
-	AccessTime time.Time
+	ProductID   int
+	UserID      string
+	Sourct      string
+	AuthCode    string
+	Time        string
+	Nance       string
+	ClientIp    string
+	CLientRefer string
+	AccessTime  time.Time
 }
 
 type User struct {

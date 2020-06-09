@@ -77,19 +77,29 @@ func GetUserInfo(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	cookie, err := c.Request.Cookie(def.Conf.CookieKey1)
+	tid, err := c.Cookie(def.Conf.CookieKey1)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
 		return
 	}
 
-	if err = session.DelSession(cookie.Value); err != nil {
+	uid, err := c.Cookie(def.Conf.CookieKey2)
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
+		return
+	}
+
+	if err = session.DelSession(tid); err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusInternalServerError, def.ErrorInternalError)
 		return
 	}
 
+	//去除cookie
+	c.SetCookie(def.Conf.CookieKey1, tid, -1, "/", def.Conf.Domain, false, true)
+	c.SetCookie(def.Conf.CookieKey2, uid, -1, "/", def.Conf.Domain, false, true)
 	c.JSON(http.StatusOK, &def.RespMes{Mes: "logout successful!", Code: 200})
 }
 
@@ -167,7 +177,7 @@ func GetProduct(c *gin.Context) {
 		return
 	}
 
-	p, err := dbops.GetProduct(pid)
+	p, err := dbops.ObtainProductInfo(pid)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusOK, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
@@ -178,19 +188,19 @@ func GetProduct(c *gin.Context) {
 }
 
 func ProductSecKill(c *gin.Context) {
-	cookie1, err := c.Request.Cookie(def.Conf.CookieKey1)
+	tokenid, err := c.Cookie(def.Conf.CookieKey1)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
 		return
 	}
-	cookie2, err := c.Request.Cookie(def.Conf.CookieKey2)
+	uid, err := c.Cookie(def.Conf.CookieKey2)
 	if err != nil {
 		def.Log.Warnln(err.Error())
 		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
 		return
 	}
-	token := &def.Session{ID: cookie1.Value, UserId: cookie2.Value}
+	token := &def.Session{ID: tokenid, UserId: uid}
 	//用户token验证
 	if ValidateToken(token) {
 		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
@@ -207,16 +217,31 @@ func ProductSecKill(c *gin.Context) {
 	a := c.Query("authcode")
 	t := c.Query("time")
 	n := c.Query("nance")
-	//cookie 获取uid
-	uid := token.UserId
+	ip := c.ClientIP()
+	refer := c.Request.Referer()
+	def.Log.Info("ip:%s,refer:%s", ip, refer)
 
-	ReqKill := &def.ReqSecKill{Sourct: s, ProductID: pid, AuthCode: a, Time: t, Nance: n, AccessTime: time.Now(), UserID: uid}
+	ReqKill := &def.ReqSecKill{Sourct: s, ProductID: pid, AuthCode: a, Time: t,
+		Nance: n, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
 
-	//用户访问控制
+	//访问控制
 	if AntiSpam(ReqKill) {
 		def.Log.Warnln("用户:" + ReqKill.UserID + "访问过多！")
 		c.JSON(http.StatusOK, &def.ErrorServerBusy)
 		return
 	}
-	c.JSON(200, gin.H{"message": "秒杀访问成功"})
+	//获取商品状态
+	p, err := dbops.ObtainProductInfo(pid)
+	if err != nil {
+		def.Log.Warnln(err.Error())
+		c.JSON(http.StatusOK, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
+		return
+	}
+	//判断商品状态
+	if p.Activity == def.PRODUCT_ACTIVITY_BEGIN {
+		def.Log.Info("product:%d had skill by user:%s", pid, uid)
+		c.JSON(200, gin.H{"message": "秒杀访问成功"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": p.Activity})
 }
