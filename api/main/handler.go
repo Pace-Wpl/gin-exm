@@ -225,8 +225,7 @@ func ProductSecKill(c *gin.Context) {
 		Nance: n, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
 
 	//访问控制
-	if AntiSpam(ReqKill) {
-		def.Log.Warnln("用户:" + ReqKill.UserID + "访问过多！")
+	if Antispam(ReqKill) {
 		c.JSON(http.StatusOK, &def.ErrorServerBusy)
 		return
 	}
