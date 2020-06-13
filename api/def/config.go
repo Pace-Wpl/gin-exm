@@ -22,6 +22,7 @@ type Config struct {
 	DefaultIcon        string
 	UserSecAccessLimit int
 	IpSecAccessLimit   int
+	StreamLimit        int
 
 	Log   LogConf
 	Redis RedisConf

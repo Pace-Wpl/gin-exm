@@ -11,4 +11,5 @@ var (
 	ErrorInternalError         = ErrResp{Error: "internal error!", ErrorCode: "003"}
 	ErrorServerBusy            = ErrResp{Error: "server busy!", ErrorCode: "004"}
 	ErrorUserNotLogin          = ErrResp{Error: "user not login!", ErrorCode: "005"}
+	ErrorInvalidReq            = ErrResp{Error: "invalid request!", ErrorCode: "006"}
 )

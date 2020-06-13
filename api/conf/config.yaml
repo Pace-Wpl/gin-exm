@@ -15,6 +15,8 @@ usersecaccesslimit: 1
 IpMinAccessLimit: 50
 #refer白名单
 referwhitelist: localhost
+#此模块限流
+streamlimit: 50000
 
 
 #日志配置

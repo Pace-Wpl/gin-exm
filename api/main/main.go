@@ -7,6 +7,8 @@ import (
 
 func registerHandlers() *gin.Engine {
 	r := gin.Default()
+	//使用限流中间件
+	r.Use(StreamLimitdMiddleWare())
 
 	//users handeler
 	r.POST("/user", RegisterUser)
