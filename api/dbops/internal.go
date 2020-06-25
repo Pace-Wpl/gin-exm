@@ -3,11 +3,18 @@ package dbops
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
+	"time"
 
 	mvccpb "github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/gin-exm/api/def"
+	"github.com/gomodule/redigo/redis"
 )
+
+/*
+ ETCD SESSION
+*/
 
 func loadProductConfig(key string) error {
 	resp, err := etcdClient.Get(context.Background(), key)
@@ -33,7 +40,7 @@ func updateProductInfo(productInfo []def.ProductConf) {
 	for _, v := range productInfo {
 		t := v
 		def.Log.Debugln(v)
-		def.ProductConfig.Store(v.ProductID, &t)
+		productConfigMap.Store(v.ProductID, &t)
 	}
 }
 
@@ -90,5 +97,85 @@ func PrepareEtcd() error {
 
 	//监听etcd配置
 	initProductWatcher(productKey)
+	return nil
+}
+
+/*
+ REDIS SESSION
+*/
+
+func writeHandle(key string) {
+	for {
+		select {
+		case req := <-reqChan:
+			conn := pool.Get()
+
+			data, err := json.Marshal(req)
+			if err != nil {
+				def.Log.Errorf("json marshal failed, err:%v", err)
+				conn.Close()
+				continue
+			}
+
+			_, err = conn.Do("LPUSH", key, string(data))
+			if err != nil {
+				def.Log.Errorf("lpush failed, err:%v, req:%v", err, req)
+				conn.Close()
+				continue
+			}
+
+			conn.Close()
+		}
+	}
+}
+
+func readHandle(key string) {
+	for {
+		conn := pool.Get()
+
+		reply, err := redis.String(conn.Do("BRPOP", key))
+
+		if err == redis.ErrNil {
+			time.Sleep(time.Second)
+			conn.Close()
+			continue
+		}
+		if err != nil {
+			def.Log.Errorf("rpop failed, err:%v", err)
+			conn.Close()
+			continue
+		}
+
+		var result *def.ResultSecKill
+		err = json.Unmarshal([]byte(reply), &result)
+		if err != nil {
+			def.Log.Errorf("json.Unmarshal failed, err:%v", err)
+			conn.Close()
+			continue
+		}
+
+		userKey := fmt.Sprintf("%s-%d", result.UserId, result.ProductId)
+
+		resultChan, ok := userConnMap.Load(userKey)
+		if !ok {
+			conn.Close()
+			def.Log.Warnf("user not found:%v", userKey)
+			continue
+		}
+
+		resultChan.(chan *def.ResultSecKill) <- result
+		conn.Close()
+	}
+}
+
+func redisListen() {
+	go writeHandle(def.Conf.Redis.SecReqQueue)
+	go readHandle(def.Conf.Redis.SecRespQueue)
+}
+
+//Redis任务，包括初次获取product配置，监听product配置
+func PrepareRedis() error {
+	//redis监听任务
+	redisListen()
 	return nil
 }

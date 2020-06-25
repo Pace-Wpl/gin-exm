@@ -221,7 +221,7 @@ func ProductSecKill(c *gin.Context) {
 	refer := c.Request.Referer()
 	def.Log.Info("ip:%s,refer:%s", ip, refer)
 
-	ReqKill := &def.ReqSecKill{Sourct: s, ProductID: pid, AuthCode: a, Time: t,
+	ReqKill := &def.ReqSecKill{Source: s, ProductID: pid, AuthCode: a, Time: t,
 		Nance: n, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
 
 	//访问控制
@@ -238,8 +238,20 @@ func ProductSecKill(c *gin.Context) {
 	}
 	//判断商品状态
 	if p.Activity == def.PRODUCT_ACTIVITY_BEGIN {
-		def.Log.Info("product:%d had skill by user:%s", pid, uid)
-		c.JSON(200, gin.H{"message": "秒杀访问成功"})
+		def.Log.Info("user:%s is skilling product:%d", uid, pid)
+		resp, err := dbops.KillProduct(ReqKill)
+		if err != nil {
+			def.Log.Warnln("request time out!")
+			c.JSON(200, def.ErrorRequestTimeOut)
+			return
+		}
+		rp := &def.RespSecKillProduct{
+			UserID: resp.UserId, ProductID: resp.ProductId, Mes: resp.Mes,
+		}
+		def.Log.Info("user:%s had skill product:%d", uid, pid)
+		c.SetCookie(def.Conf.CookieKey3, resp.Token, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
+		c.JSON(200, rp)
+		// c.JSON(200, gin.H{"message": "秒杀访问成功"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": p.Activity})

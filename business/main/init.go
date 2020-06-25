@@ -4,9 +4,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/gin-exm/api/dbops"
-	"github.com/gin-exm/api/def"
-	"github.com/gin-gonic/gin"
+	"github.com/gin-exm/business/dbops"
+	"github.com/gin-exm/business/def"
 	"github.com/jinzhu/configor"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,13 +19,6 @@ func initConfig() error {
 }
 
 func initLog() error {
-	// init gin log
-	f, err := os.OpenFile(def.Conf.Log.GinLogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
-	if err != nil {
-		return err
-	}
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-
 	//init sys log
 	f1, err := os.OpenFile(def.Conf.Log.SysLogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
 	if err != nil {
@@ -43,10 +35,6 @@ func initLog() error {
 
 func initDB() error {
 	var err error
-	if err = dbops.InitDB(); err != nil {
-		return err
-	}
-
 	if err = dbops.InitRedis(); err != nil {
 		return err
 	}
@@ -58,7 +46,7 @@ func initDB() error {
 	return nil
 }
 
-//初始化，包括配置文件，日志，mysql，redis，etcd模块
+//初始化，包括配置文件，日志，redis，etcd模块
 func initAll() error {
 	var err error
 
@@ -74,7 +62,7 @@ func initAll() error {
 		return err
 	}
 
-	//初始化db：mysql，redis, etcd
+	//初始化db：redis, etcd
 	if err = initDB(); err != nil {
 		def.Log.Fatal(err.Error())
 		return err
@@ -83,13 +71,9 @@ func initAll() error {
 	return err
 }
 
-//开启任务，包括Etcd任务,Redis任务
+//开启任务,Redis任务
 func startAll() error {
 	var err error
-	if err = dbops.PrepareEtcd(); err != nil {
-		def.Log.Fatal(err.Error())
-		return err
-	}
 
 	if err = dbops.PrepareRedis(); err != nil {
 		def.Log.Fatal(err.Error())

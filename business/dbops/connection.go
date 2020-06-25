@@ -4,31 +4,15 @@ import (
 	"time"
 
 	etcd "github.com/etcd-io/etcd/clientv3"
-	"github.com/gin-exm/api/def"
+	"github.com/gin-exm/business/def"
 	"github.com/gomodule/redigo/redis"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 var (
 	etcdClient *etcd.Client
 	pool       *redis.Pool
-	db         *gorm.DB
 	err        error
 )
-
-//mysql db init
-func InitDB() error {
-	str := def.Conf.Mysql.User + ":" + def.Conf.Mysql.Pwd + "@tcp(" + def.Conf.Mysql.Addr + ")/" +
-		def.Conf.Mysql.Database + "?" + def.Conf.Mysql.Config
-	def.Log.Debugln(str)
-	db, err = gorm.Open("mysql", str)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 //redis pool init
 func InitRedis() error {
@@ -65,6 +49,6 @@ func InitEtcd() error {
 func Close() {
 	etcdClient.Close()
 	pool.Close()
-	db.Close()
-	close(reqChan)
+	close(readHandleChan)
+	close(writeHandleChan)
 }

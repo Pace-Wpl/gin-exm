@@ -7,6 +7,7 @@ sessionexpired: 86400
 #cookie
 cookiekey1: tokenID
 cookiekey2: userID
+cookiekey3: pro
 #默认头像dir
 defaulticon: ../icon/default.jpg
 #用户每秒访问频率限制
@@ -17,6 +18,10 @@ IpMinAccessLimit: 50
 referwhitelist: localhost
 #此模块限流
 streamlimit: 50000
+#请求过期时间
+reqtimeout: 10
+#请求的channel buffer
+reqchannelbuffer: 50000
 
 
 #日志配置
@@ -35,6 +40,10 @@ redis:
     maxactive: 32
     #超时时间
     idletimeout: 120
+    #秒杀请求队列
+    secreqqueue: sec_req_queue
+    #秒杀响应队列
+    secrespqueue: sec_resp_queue
 
 #etcd配置
 etcd:

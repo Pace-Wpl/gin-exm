@@ -33,6 +33,12 @@ type RespProductInfo struct {
 	Total     int   `json:"total"`
 }
 
+type RespSecKillProduct struct {
+	UserID    string `json:"user_id"`
+	ProductID int    `json:"product_id"`
+	Mes       string `json:"message"`
+}
+
 type ReqModifyPwd struct {
 	Pwd    string `json:"password"`
 	NewPwd string `json:"new_password"`
@@ -46,7 +52,7 @@ type ReqUser struct {
 type ReqSecKill struct {
 	ProductID   int
 	UserID      string
-	Sourct      string
+	Source      string
 	AuthCode    string
 	Time        string
 	Nance       string
@@ -64,4 +70,11 @@ type User struct {
 type Session struct {
 	UserId string `json:"user_id"`
 	ID     string `json:"id"`
+}
+
+type ResultSecKill struct {
+	ProductId int
+	UserId    string
+	Mes       string
+	Token     string
 }

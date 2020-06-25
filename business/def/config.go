@@ -10,24 +10,16 @@ var (
 )
 
 type Config struct {
-	Httpport           string
-	AppName            string
-	SessionExpired     int
-	CookieKey1         string
-	CookieKey2         string
-	CookieKey3         string
-	Domain             string
-	DefaultIcon        string
-	UserSecAccessLimit int
-	IpSecAccessLimit   int
-	StreamLimit        int
-	ReqTimeout         int
-	ReqChannelBuffer   int
-
-	Log   LogConf
-	Redis RedisConf
-	Etcd  EtcdConf
-	Mysql MysqlConf
+	RequestWaitTimeOut  int
+	ResponseSendTimeOut int
+	ReqChannelBuffer    int
+	RespChannelBuffer   int
+	ReadGoroutineNum    int
+	WriteGoroutineNum   int
+	HandleGoroutineNum  int
+	Log                 LogConf
+	Redis               RedisConf
+	Etcd                EtcdConf
 }
 
 type ProductConf struct {
@@ -59,12 +51,4 @@ type EtcdConf struct {
 	Timeout    int
 	PrefixKey  string
 	ProductKey string
-}
-
-type MysqlConf struct {
-	Addr     string
-	User     string
-	Pwd      string
-	Database string
-	Config   string
 }

@@ -1,10 +1,18 @@
 package dbops
 
 import (
+	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gin-exm/api/def"
+)
+
+var (
+	productConfigMap sync.Map
+	userConnMap      sync.Map
+	reqChan          = make(chan *def.ReqSecKill, def.Conf.ReqChannelBuffer)
 )
 
 func AddUser(user *def.User) error {
@@ -40,7 +48,7 @@ func ModifyPwd(uname, pwd string) error {
 
 func ListProduct() ([]*def.ProductConf, error) {
 	var productList []*def.ProductConf
-	def.ProductConfig.Range(func(key, value interface{}) bool {
+	productConfigMap.Range(func(key, value interface{}) bool {
 		productList = append(productList, value.(*def.ProductConf))
 		return true
 	})
@@ -50,7 +58,7 @@ func ListProduct() ([]*def.ProductConf, error) {
 
 func getProduct(pid int) (*def.ProductConf, error) {
 	p := &def.ProductConf{}
-	v, ok := def.ProductConfig.Load(pid)
+	v, ok := productConfigMap.Load(pid)
 	if ok {
 		p = v.(*def.ProductConf)
 		return p, nil
@@ -79,6 +87,25 @@ func ObtainProductInfo(pid int) (*def.RespProductInfo, error) {
 	return pp, nil
 }
 
-func KillProduct(pid int) error {
-	return nil
+func KillProduct(req *def.ReqSecKill) (*def.ResultSecKill, error) {
+	ch := make(chan *def.ResultSecKill)
+	key := fmt.Sprintf("%s-%d", req.UserID, req.ProductID)
+	userConnMap.Store(key, ch)
+
+	reqChan <- req
+
+	//过期时间
+	ticker := time.NewTicker(time.Duration(def.Conf.ReqTimeout) * time.Second)
+
+	defer func() {
+		ticker.Stop()
+		userConnMap.Delete(key)
+	}()
+
+	select {
+	case <-ticker.C:
+		return nil, errors.New("time out")
+	case result := <-ch:
+		return result, nil
+	}
 }

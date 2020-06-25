@@ -12,4 +12,5 @@ var (
 	ErrorServerBusy            = ErrResp{Error: "server busy!", ErrorCode: "004"}
 	ErrorUserNotLogin          = ErrResp{Error: "user not login!", ErrorCode: "005"}
 	ErrorInvalidReq            = ErrResp{Error: "invalid request!", ErrorCode: "006"}
+	ErrorRequestTimeOut        = ErrResp{Error: "request time out!", ErrorCode: "007"}
 )

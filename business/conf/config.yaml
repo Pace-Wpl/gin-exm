@@ -1,0 +1,43 @@
+#最大请求处理时间
+requestwaittimeout: 8
+#最大相应发送时间
+responsesendtimeout: 8
+#请求的channel buffer
+reqchannelbuffer: 50000
+#响应的channel buffer
+respchannelbuffer: 50000
+#读取MQ的goroutine数量
+readgoroutinenum: 10
+#处理MQ信息的goroutine数量
+handlegoroutinenum: 20
+#写入MQ的goroutine数量
+writegoroutinenum: 10
+
+
+#日志配置
+log:
+    syslogpath: ../logs/sys.log
+    sysloglevel: debug
+
+#redis配置
+redis:
+    addr:  127.0.0.1:6379
+    #最大空闲数
+    maxidle: 16
+    #最大连接数，0表示无限制
+    maxactive: 32
+    #超时时间
+    idletimeout: 120
+    #秒杀请求队列
+    secreqqueue: sec_req_queue
+    #秒杀响应队列
+    secrespqueue: sec_resp_queue
+
+#etcd配置
+etcd:
+    addr: 127.0.0.1:2379
+    timeout: 5
+    #完整路径等于 prefixkey + productkey
+    prefixkey: /pace/gin-exm/api/
+    productkey: product
+
