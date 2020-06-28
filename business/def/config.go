@@ -17,6 +17,7 @@ type Config struct {
 	ReadGoroutineNum    int
 	WriteGoroutineNum   int
 	HandleGoroutineNum  int
+	CryptoStr           string
 	Log                 LogConf
 	Redis               RedisConf
 	Etcd                EtcdConf

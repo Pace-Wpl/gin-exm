@@ -12,6 +12,8 @@ readgoroutinenum: 10
 handlegoroutinenum: 20
 #写入MQ的goroutine数量
 writegoroutinenum: 10
+#加密附加随机字符串
+cryptostr: ABC
 
 
 #日志配置
