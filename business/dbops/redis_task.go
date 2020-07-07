@@ -20,7 +20,7 @@ func handleReader(ctx context.Context, key string) {
 	for {
 		conn := pool.Get()
 		for {
-			ret, err := redis.Values(conn.Do("BRPOP", key))
+			ret, err := redis.Values(conn.Do("BRPOP", key, 0))
 			if err != nil || len(ret) != 2 {
 				def.Log.Error("pop from queue failed, err:%v", err)
 				break
@@ -52,6 +52,7 @@ func handleReader(ctx context.Context, key string) {
 				timer.Stop()
 				return
 			case readHandleChan <- req:
+				def.Log.Infof("handle req:%d", req.ProductID)
 			case <-timer.C:
 				def.Log.Warn("send to handle chan timeout, req:%v", req)
 				break
@@ -96,6 +97,7 @@ func sendToRedis(res *def.ResultSecKill, key string) error {
 		return err
 	}
 
+	def.Log.Infof("send to redis:%d", res.ProductId)
 	return nil
 }
 
@@ -104,7 +106,7 @@ func handleBusiness(ctx context.Context) {
 
 	def.Log.Info("handle user running")
 	for req := range readHandleChan {
-		def.Log.Info("begin process request:%v", req)
+		def.Log.Infof("begin process request:%v", req)
 		res, err := HandleSecKill(req)
 		if err != nil {
 			def.Log.Warn("process request %v failed, err:%v", err)

@@ -13,9 +13,7 @@ defaulticon: ../icon/default.jpg
 #用户每秒访问频率限制
 usersecaccesslimit: 1
 #ip每分钟访问频率限制
-IpMinAccessLimit: 50
-#refer白名单
-referwhitelist: localhost
+ipsecaccesslimit: 50
 #此模块限流
 streamlimit: 50000
 #请求过期时间

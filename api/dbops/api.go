@@ -3,10 +3,12 @@ package dbops
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/gin-exm/api/def"
+	"github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -72,8 +74,19 @@ func ObtainProductInfo(pid int) (*def.RespProductInfo, error) {
 		return nil, err
 	}
 
+	pidStr := strconv.Itoa(pid)
+	conn := pool.Get()
+	remainder, err := redis.Int(conn.Do("hget", "product_num", pidStr))
+	if err != nil {
+		return nil, err
+	}
+
 	pp := &def.RespProductInfo{ProductID: p.ProductID, StartTime: p.StartTime, EndTime: p.EndTime,
-		Status: p.Status, Activity: 0, Total: p.Total}
+		Status: p.Status, Activity: 0, Total: p.Total, Remainder: remainder}
+
+	if remainder <= 0 {
+		pp.Status = def.PRODUCT_STATUS_SELLOUT
+	}
 	//活动开始,时间，状态判断,时间未到，标记活动未开始，时间>start.time  <end.time 并且 status 为 nomal,标记活动开始
 	//其他:标记活动结束
 	if time.Now().Unix() < pp.StartTime {

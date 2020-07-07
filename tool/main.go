@@ -4,21 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/gomodule/redigo/redis"
 )
 
 const (
-	EtcdKey = "/pace/gin-exm/api/product"
+	EtcdKey = "/pace/gin-exm/product"
 )
 
 type SecInfoConf struct {
-	ProductID int
-	StartTime int64
-	EndTime   int64
-	Status    int
-	Total     int
+	ProductID int   `json:"product_id"`
+	StartTime int64 `json:"start_time"`
+	EndTime   int64 `json:"end_time"`
+	Status    int   `json:"status"`
+	Total     int   `json:"total"`
 }
 
 func SetLogConfToEtcd() {
@@ -39,8 +41,8 @@ func SetLogConfToEtcd() {
 		SecInfoConfArr,
 		SecInfoConf{
 			ProductID: 1029,
-			StartTime: 1505008800,
-			EndTime:   1505012400,
+			StartTime: 1594094400,
+			EndTime:   1594353600,
 			Status:    0,
 			Total:     1000,
 		},
@@ -49,10 +51,10 @@ func SetLogConfToEtcd() {
 		SecInfoConfArr,
 		SecInfoConf{
 			ProductID: 1028,
-			StartTime: 1505008800,
-			EndTime:   1505012400,
+			StartTime: 1594094400,
+			EndTime:   1594353600,
 			Status:    0,
-			Total:     0,
+			Total:     1000,
 		},
 	)
 
@@ -84,6 +86,22 @@ func SetLogConfToEtcd() {
 	}
 }
 
+func setRdist() {
+	conn, err := redis.Dial("tcp", "127.0.0.1:6379")
+	if err != nil {
+		log.Println(err.Error())
+	}
+	_, err = conn.Do("hset", "product_num", "1028", 1000)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	_, err = conn.Do("hset", "product_num", "1029", 1000)
+	if err != nil {
+		log.Println(err.Error())
+	}
+}
+
 func main() {
 	SetLogConfToEtcd()
+	// setRdist()
 }

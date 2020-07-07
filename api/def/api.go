@@ -31,6 +31,7 @@ type RespProductInfo struct {
 	Status    int   `json:"status"`
 	Activity  int   `json:"activity"`
 	Total     int   `json:"total"`
+	Remainder int   `json:"remainder"`
 }
 
 type RespSecKillProduct struct {

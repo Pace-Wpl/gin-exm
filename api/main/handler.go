@@ -188,24 +188,26 @@ func GetProduct(c *gin.Context) {
 }
 
 func ProductSecKill(c *gin.Context) {
-	tokenid, err := c.Cookie(def.Conf.CookieKey1)
-	if err != nil {
-		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
-		return
-	}
-	uid, err := c.Cookie(def.Conf.CookieKey2)
-	if err != nil {
-		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
-		return
-	}
-	token := &def.Session{ID: tokenid, UserId: uid}
-	//用户token验证
-	if ValidateToken(token) {
-		c.JSON(http.StatusOK, def.ErrorUserNotLogin)
-		return
-	}
+	// tokenid, err := c.Cookie(def.Conf.CookieKey1)
+	// if err != nil {
+	// 	def.Log.Warnln(err.Error())
+	// 	c.JSON(http.StatusUnauthorized, def.ErrorUserNotLogin)
+	// 	return
+	// }
+	// uid, err := c.Cookie(def.Conf.CookieKey2)
+	// if err != nil {
+	// 	def.Log.Warnln(err.Error())
+	// 	c.JSON(http.StatusUnauthorized, def.ErrorUserNotLogin)
+	// 	return
+	// }
+	// token := &def.Session{ID: tokenid, UserId: uid}
+	// //用户token验证
+	// if ValidateToken(token) {
+	// 	c.JSON(http.StatusUnauthorized, def.ErrorUserNotLogin)
+	// 	return
+	// }
+
+	uid := "pace"
 
 	pid, err := strconv.Atoi(c.Param("product_id"))
 	if err != nil {
@@ -219,16 +221,16 @@ func ProductSecKill(c *gin.Context) {
 	n := c.Query("nance")
 	ip := c.ClientIP()
 	refer := c.Request.Referer()
-	def.Log.Info("ip:%s,refer:%s", ip, refer)
+	def.Log.Println("ip:" + ip + ",refer:" + refer)
 
 	ReqKill := &def.ReqSecKill{Source: s, ProductID: pid, AuthCode: a, Time: t,
 		Nance: n, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
 
 	//访问控制
-	if Antispam(ReqKill) {
-		c.JSON(http.StatusOK, &def.ErrorServerBusy)
-		return
-	}
+	// if !Antispam(ReqKill) {
+	// 	c.JSON(http.StatusOK, &def.ErrorServerBusy)
+	// 	return
+	// }
 	//获取商品状态
 	p, err := dbops.ObtainProductInfo(pid)
 	if err != nil {
@@ -238,17 +240,17 @@ func ProductSecKill(c *gin.Context) {
 	}
 	//判断商品状态
 	if p.Activity == def.PRODUCT_ACTIVITY_BEGIN {
-		def.Log.Info("user:%s is skilling product:%d", uid, pid)
+		def.Log.Infof("user:%s is skilling product:%d", uid, pid)
 		resp, err := dbops.KillProduct(ReqKill)
 		if err != nil {
-			def.Log.Warnln("request time out!")
+			def.Log.Warnln("request time out!", err.Error())
 			c.JSON(200, def.ErrorRequestTimeOut)
 			return
 		}
 		rp := &def.RespSecKillProduct{
 			UserID: resp.UserId, ProductID: resp.ProductId, Mes: resp.Mes,
 		}
-		def.Log.Info("user:%s had skill product:%d", uid, pid)
+		def.Log.Infof("user:%s had skill product:%d,token:%s", uid, pid, resp.Token)
 		c.SetCookie(def.Conf.CookieKey3, resp.Token, def.Conf.SessionExpired, "/", def.Conf.Domain, false, true)
 		c.JSON(200, rp)
 		// c.JSON(200, gin.H{"message": "秒杀访问成功"})

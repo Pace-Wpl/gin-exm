@@ -13,24 +13,30 @@ type connLimiter struct {
 }
 
 var (
-	connLi = &connLimiter{
-		concurrentConn: def.Conf.StreamLimit,
-		bucket:         make(chan int, def.Conf.StreamLimit),
-	}
+	connLi *connLimiter
 )
 
-func StreamLimitdMiddleWare() gin.HandlerFunc {
+func getLimit(limit int) *connLimiter {
+	connLi := &connLimiter{
+		concurrentConn: limit,
+		bucket:         make(chan int, limit),
+	}
+	return connLi
+}
+
+func StreamLimitdMiddleWare(connLi *connLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//判断请求连接数是否超过规定连接数
 		if !connLi.getConn() {
-			c.JSON(http.StatusOK, def.ErrorServerBusy)
+			// c.JSON(http.StatusTooManyRequests, def.ErrorServerBusy)
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, def.ErrorServerBusy)
 			return
 		}
 
 		c.Next()
 
 		//处理结束，释放连接
-		connLi.releaseConn()
+		defer connLi.releaseConn()
 	}
 }
 

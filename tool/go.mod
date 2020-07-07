@@ -11,6 +11,7 @@ require (
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/gomodule/redigo v1.8.2
 	github.com/google/uuid v1.1.1 // indirect
 	go.uber.org/zap v1.15.0 // indirect
 	google.golang.org/genproto v0.0.0-20200605102947-12044bf5ea91 // indirect

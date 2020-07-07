@@ -3,6 +3,7 @@ package main
 import (
 	"sync"
 
+	"github.com/gin-exm/api/dbops"
 	"github.com/gin-exm/api/def"
 )
 
@@ -53,7 +54,7 @@ func (p *MinLimit) calculate(nowTime int64) int {
 
 //访问限制
 func Antispam(req *def.ReqSecKill) bool {
-	if userAndIpFilter(req) || referFilter(req) {
+	if userAndIpFilter(req) && referFilter(req) {
 		return true
 	}
 	return false
@@ -61,6 +62,20 @@ func Antispam(req *def.ReqSecKill) bool {
 
 func userAndIpFilter(req *def.ReqSecKill) bool {
 	/**   黑、白名单控制  **/
+	//id 黑白名单
+	if idMap := dbops.IdMap(req.UserID); idMap == 1 {
+		return true
+	} else if idMap == 2 {
+		return false
+	}
+
+	//ip 黑白名单
+	if ipMap := dbops.IpMap(req.ClientIp); ipMap == 1 {
+		return true
+	} else if ipMap == 2 {
+		return false
+	}
+
 	Limit.lock.Lock()
 	//uid 频率控制
 	limit, ok := Limit.UserLimitMap[req.UserID]
@@ -81,16 +96,16 @@ func userAndIpFilter(req *def.ReqSecKill) bool {
 	Limit.lock.Unlock()
 	if secIDCount > def.Conf.UserSecAccessLimit {
 		def.Log.Warnln("用户id:" + req.UserID + "访问过多")
-		return true
+		return false
 	} else if secIPCount > def.Conf.IpSecAccessLimit {
 		def.Log.Warnln("ip:" + req.ClientIp + "访问过多")
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 //refer过滤
 func referFilter(req *def.ReqSecKill) bool {
 	/**   白名单控制  **/
-	return false
+	return dbops.ReferWhiteMap(req.CLientRefer)
 }
