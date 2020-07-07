@@ -12,7 +12,5 @@ func main() {
 	}
 
 	defer close()
-
-	for {
-	}
+	select {}
 }

@@ -52,4 +52,9 @@ type EtcdConf struct {
 	Timeout    int
 	PrefixKey  string
 	ProductKey string
+	ControlKey string
+}
+
+type Control struct {
+	BusinessSwitch int
 }

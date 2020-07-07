@@ -75,6 +75,11 @@ func initAll() error {
 func startAll() error {
 	var err error
 
+	if err = dbops.PrepareEtcd(); err != nil {
+		def.Log.Fatal(err.Error())
+		return err
+	}
+
 	if err = dbops.PrepareRedis(); err != nil {
 		def.Log.Fatal(err.Error())
 		return err

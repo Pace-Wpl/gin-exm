@@ -1,8 +1,8 @@
 package dbops
 
 import (
+	"context"
 	"encoding/json"
-	"sync"
 	"time"
 
 	"github.com/gin-exm/business/def"
@@ -15,7 +15,7 @@ var (
 )
 
 //监听request MQ，并写入 read handle channel
-func handleReader(key string) {
+func handleReader(ctx context.Context, key string) {
 	def.Log.Info("read goroutine running")
 	for {
 		conn := pool.Get()
@@ -47,6 +47,10 @@ func handleReader(key string) {
 
 			timer := time.NewTicker(time.Duration(def.Conf.ResponseSendTimeOut) * time.Second)
 			select {
+			case <-ctx.Done():
+				def.Log.Warn("goroutine 'handleReader' closing...")
+				timer.Stop()
+				return
 			case readHandleChan <- req:
 			case <-timer.C:
 				def.Log.Warn("send to handle chan timeout, req:%v", req)
@@ -59,14 +63,19 @@ func handleReader(key string) {
 }
 
 //监听write handel channel获取response 写入 response MQ
-func handleWrite(key string) {
+func handleWrite(ctx context.Context, key string) {
 	def.Log.Debug("handle write running")
 
-	for res := range writeHandleChan {
-		err := sendToRedis(res, key)
-		if err != nil {
-			def.Log.Error("send to redis, err:%v, res:%v", err, res)
-			continue
+	for {
+		select {
+		case <-ctx.Done():
+			def.Log.Warn("goroutine 'handleWrite' closing...")
+			return
+		case res := <-writeHandleChan:
+			err := sendToRedis(res, key)
+			if err != nil {
+				def.Log.Error("send to redis, err:%v, res:%v", err, res)
+			}
 		}
 	}
 }
@@ -91,7 +100,7 @@ func sendToRedis(res *def.ResultSecKill, key string) error {
 }
 
 //接受request MQ，处理，response MQ
-func handleBusiness() {
+func handleBusiness(ctx context.Context) {
 
 	def.Log.Info("handle user running")
 	for req := range readHandleChan {
@@ -100,12 +109,16 @@ func handleBusiness() {
 		if err != nil {
 			def.Log.Warn("process request %v failed, err:%v", err)
 			res = &def.ResultSecKill{
-				ProductId: 0, UserId: "", Mes: err.Error(), Token: "",
+				ProductId: req.ProductID, UserId: req.UserID, Mes: err.Error(), Token: "",
 			}
 		}
 
 		timer := time.NewTicker(time.Duration(def.Conf.ResponseSendTimeOut) * time.Second)
 		select {
+		case <-ctx.Done():
+			def.Log.Warn("goroutine 'handleBusiness' closing...")
+			timer.Stop()
+			return
 		case writeHandleChan <- res:
 		case <-timer.C:
 			def.Log.Warn("send to response chan timeout, res:%v", res)
@@ -118,31 +131,29 @@ func handleBusiness() {
 
 //开启redis goroutine，并等待任务
 func redisTask() {
-	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
 	for i := 0; i < def.Conf.ReadGoroutineNum; i++ {
-		wg.Add(1)
-		go handleReader(def.Conf.Redis.SecReqQueue)
+		go handleReader(ctx, def.Conf.Redis.SecReqQueue)
 	}
-
 	for i := 0; i < def.Conf.WriteGoroutineNum; i++ {
-		wg.Add(1)
-		go handleWrite(def.Conf.Redis.SecRespQueue)
+		go handleWrite(ctx, def.Conf.Redis.SecRespQueue)
 	}
-
 	for i := 0; i < def.Conf.HandleGoroutineNum; i++ {
-		wg.Add(1)
-		go handleBusiness()
+		go handleBusiness(ctx)
 	}
 
 	def.Log.Debug("all process goroutine started")
-	wg.Wait()
-	def.Log.Debug("wait all goroutine exited")
+	select {
+	case <-controlHandleChan:
+		cancel()
+		def.Log.Debug("close all goroutine")
+	}
 	return
 }
 
 //Redis任务，包括接受请求，处理请求，响应请求
 func PrepareRedis() error {
 	//redis任务
-	redisTask()
+	go redisTask()
 	return nil
 }

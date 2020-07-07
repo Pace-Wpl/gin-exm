@@ -51,4 +51,5 @@ func Close() {
 	pool.Close()
 	close(readHandleChan)
 	close(writeHandleChan)
+	close(controlHandleChan)
 }

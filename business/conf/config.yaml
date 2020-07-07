@@ -39,7 +39,10 @@ redis:
 etcd:
     addr: 127.0.0.1:2379
     timeout: 5
-    #完整路径等于 prefixkey + productkey
-    prefixkey: /pace/gin-exm/api/
+    #商品配置完整路径等于 prefixkey + productkey
+    #控制配置完整路径等于 prefixkey + conrolkey
+    prefixkey: /pace/gin-exm/
     productkey: product
+    controlkey: control/business
+
 
