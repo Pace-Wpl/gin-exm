@@ -33,9 +33,9 @@ log:
 redis:
     addr:  127.0.0.1:6379
     #最大空闲数
-    maxidle: 16
+    maxidle: 50
     #最大连接数，0表示无限制
-    maxactive: 32
+    maxactive: 50000
     #超时时间
     idletimeout: 120
     #秒杀请求队列

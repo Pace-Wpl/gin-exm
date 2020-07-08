@@ -180,7 +180,7 @@ func GetProduct(c *gin.Context) {
 	p, err := dbops.ObtainProductInfo(pid)
 	if err != nil {
 		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusOK, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
+		c.JSON(http.StatusInternalServerError, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
 		return
 	}
 
@@ -235,7 +235,7 @@ func ProductSecKill(c *gin.Context) {
 	p, err := dbops.ObtainProductInfo(pid)
 	if err != nil {
 		def.Log.Warnln(err.Error())
-		c.JSON(http.StatusOK, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
+		c.JSON(http.StatusInternalServerError, &def.RespMes{Mes: "product sell out or not exist!", Code: 500})
 		return
 	}
 	//判断商品状态
@@ -244,7 +244,7 @@ func ProductSecKill(c *gin.Context) {
 		resp, err := dbops.KillProduct(ReqKill)
 		if err != nil {
 			def.Log.Warnln("request time out!", err.Error())
-			c.JSON(200, def.ErrorRequestTimeOut)
+			c.JSON(http.StatusRequestTimeout, def.ErrorRequestTimeOut)
 			return
 		}
 		rp := &def.RespSecKillProduct{

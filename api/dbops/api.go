@@ -76,6 +76,7 @@ func ObtainProductInfo(pid int) (*def.RespProductInfo, error) {
 
 	pidStr := strconv.Itoa(pid)
 	conn := pool.Get()
+	defer conn.Close()
 	remainder, err := redis.Int(conn.Do("hget", "product_num", pidStr))
 	if err != nil {
 		return nil, err
