@@ -21,6 +21,15 @@ func NewUUID() (string, error) {
 	return fmt.Sprintf("%x-%x-%x-%x", uuid[0:4], uuid[4:8], uuid[8:12], uuid[12:16]), nil
 }
 
+func NewNance() (string, error) {
+	uuid := make([]byte, 4)
+	n, err := io.ReadFull(rand.Reader, uuid)
+	if n != len(uuid) || err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", uuid[0:4]), nil
+}
+
 func GetCurrentTimestampSec() int {
 	ts, _ := strconv.Atoi(strconv.FormatInt(time.Now().UnixNano()/1000000000, 10))
 	return ts

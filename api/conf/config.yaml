@@ -20,6 +20,10 @@ streamlimit: 50000
 reqtimeout: 10
 #请求的channel buffer
 reqchannelbuffer: 50000
+#读取MQ的goroutine数量
+readgoroutinenum: 10
+#写入MQ的goroutine数量
+writegoroutinenum: 10
 
 
 #日志配置
@@ -33,9 +37,9 @@ log:
 redis:
     addr:  127.0.0.1:6379
     #最大空闲数
-    maxidle: 50
+    maxidle: 100
     #最大连接数，0表示无限制
-    maxactive: 50000
+    maxactive: 40960
     #超时时间
     idletimeout: 120
     #秒杀请求队列

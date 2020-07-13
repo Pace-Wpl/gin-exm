@@ -23,6 +23,8 @@ type Config struct {
 	StreamLimit        int
 	ReqTimeout         int
 	ReqChannelBuffer   int
+	ReadGoroutineNum   int
+	WriteGoroutineNum  int
 
 	Log   LogConf
 	Redis RedisConf

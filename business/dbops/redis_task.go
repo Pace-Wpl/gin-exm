@@ -91,9 +91,9 @@ func sendToRedis(res *def.ResultSecKill, key string) error {
 
 	conn := pool.Get()
 	defer conn.Close()
-	_, err = conn.Do("RPUSH", key, string(data))
+	_, err = conn.Do("LPUSH", key, string(data))
 	if err != nil {
-		def.Log.Warn("rpush to redis failed, err:%v", err)
+		def.Log.Warn("lpush to redis failed, err:%v", err)
 		return err
 	}
 
@@ -132,7 +132,7 @@ func handleBusiness(ctx context.Context) {
 }
 
 //开启redis goroutine，并等待任务
-func redisTask() {
+func redisListen() {
 	ctx, cancel := context.WithCancel(context.Background())
 	for i := 0; i < def.Conf.ReadGoroutineNum; i++ {
 		go handleReader(ctx, def.Conf.Redis.SecReqQueue)
@@ -156,6 +156,6 @@ func redisTask() {
 //Redis任务，包括接受请求，处理请求，响应请求
 func PrepareRedis() error {
 	//redis任务
-	go redisTask()
+	go redisListen()
 	return nil
 }

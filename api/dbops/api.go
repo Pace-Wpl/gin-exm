@@ -103,7 +103,7 @@ func ObtainProductInfo(pid int) (*def.RespProductInfo, error) {
 
 func KillProduct(req *def.ReqSecKill) (*def.ResultSecKill, error) {
 	ch := make(chan *def.ResultSecKill)
-	key := fmt.Sprintf("%s-%d", req.UserID, req.ProductID)
+	key := fmt.Sprintf("%s-%d-%s", req.UserID, req.ProductID, req.Nance)
 	userConnMap.Store(key, ch)
 
 	reqChan <- req

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-exm/api/dbops"
 	"github.com/gin-exm/api/def"
 	"github.com/gin-exm/api/session"
+	"github.com/gin-exm/api/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -208,6 +209,7 @@ func ProductSecKill(c *gin.Context) {
 	// }
 
 	uid := "pace"
+	nance, _ := utils.NewNance()
 
 	pid, err := strconv.Atoi(c.Param("product_id"))
 	if err != nil {
@@ -218,13 +220,13 @@ func ProductSecKill(c *gin.Context) {
 	s := c.Query("src")
 	a := c.Query("authcode")
 	t := c.Query("time")
-	n := c.Query("nance")
+	// n := c.Query("nance")
 	ip := c.ClientIP()
 	refer := c.Request.Referer()
 	def.Log.Println("ip:" + ip + ",refer:" + refer)
 
 	ReqKill := &def.ReqSecKill{Source: s, ProductID: pid, AuthCode: a, Time: t,
-		Nance: n, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
+		Nance: nance, AccessTime: time.Now(), UserID: uid, ClientIp: ip, CLientRefer: refer}
 
 	//访问控制
 	// if !Antispam(ReqKill) {

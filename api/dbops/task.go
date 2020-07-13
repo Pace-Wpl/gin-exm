@@ -116,6 +116,7 @@ func writeHandle(key string) {
 				continue
 			}
 
+			def.Log.Info("lpush key...")
 			_, err = conn.Do("LPUSH", key, string(data))
 			if err != nil {
 				def.Log.Errorf("lpush failed, err:%v, req:%v", err, req)
@@ -131,45 +132,53 @@ func writeHandle(key string) {
 func readHandle(key string) {
 	for {
 		conn := pool.Get()
+		for {
+			reply, err := redis.Values(conn.Do("BRPOP", key, 0))
 
-		reply, err := redis.Values(conn.Do("BRPOP", key, 0))
+			if err != nil || len(reply) != 2 {
+				def.Log.Error("pop from queue failed, err:%v", err)
+				break
+			}
 
-		if err != nil || len(reply) != 2 {
-			def.Log.Error("pop from queue failed, err:%v", err)
-			break
+			data, ok := reply[1].([]byte)
+			if !ok {
+				def.Log.Error("pop from queue failed, err:%v", err)
+				continue
+			}
+
+			var result *def.ResultSecKill
+			err = json.Unmarshal([]byte(data), &result)
+			if err != nil {
+				def.Log.Errorf("json.Unmarshal failed, err:%v", err)
+				conn.Close()
+				continue
+			}
+
+			userKey := fmt.Sprintf("%s-%d-%s", result.UserId, result.ProductId, result.Nance)
+
+			resultChan, ok := userConnMap.Load(userKey)
+			if !ok {
+				conn.Close()
+				def.Log.Warnf("user not found:%v", userKey)
+				continue
+			}
+
+			resultChan.(chan *def.ResultSecKill) <- result
+
 		}
-
-		data, ok := reply[1].([]byte)
-		if !ok {
-			def.Log.Error("pop from queue failed, err:%v", err)
-			continue
-		}
-
-		var result *def.ResultSecKill
-		err = json.Unmarshal([]byte(data), &result)
-		if err != nil {
-			def.Log.Errorf("json.Unmarshal failed, err:%v", err)
-			conn.Close()
-			continue
-		}
-
-		userKey := fmt.Sprintf("%s-%d", result.UserId, result.ProductId)
-
-		resultChan, ok := userConnMap.Load(userKey)
-		if !ok {
-			conn.Close()
-			def.Log.Warnf("user not found:%v", userKey)
-			continue
-		}
-
-		resultChan.(chan *def.ResultSecKill) <- result
 		conn.Close()
 	}
 }
 
 func redisListen() {
-	go writeHandle(def.Conf.Redis.SecReqQueue)
-	go readHandle(def.Conf.Redis.SecRespQueue)
+	// ctx, cancel := context.WithCancel(context.Background())
+	for i := 0; i < def.Conf.ReadGoroutineNum; i++ {
+		go writeHandle(def.Conf.Redis.SecReqQueue)
+	}
+	for i := 0; i < def.Conf.WriteGoroutineNum; i++ {
+		go readHandle(def.Conf.Redis.SecRespQueue)
+	}
+
 }
 
 //Redis监听任务

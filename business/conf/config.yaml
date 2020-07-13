@@ -7,11 +7,11 @@ reqchannelbuffer: 50000
 #响应的channel buffer
 respchannelbuffer: 50000
 #读取MQ的goroutine数量
-readgoroutinenum: 5
+readgoroutinenum: 10
 #处理MQ信息的goroutine数量
 handlegoroutinenum: 10
 #写入MQ的goroutine数量
-writegoroutinenum: 5
+writegoroutinenum: 10
 #加密附加随机字符串
 cryptostr: ABC
 
@@ -25,9 +25,9 @@ log:
 redis:
     addr:  127.0.0.1:6379
     #最大空闲数
-    maxidle: 20
+    maxidle: 100
     #最大连接数，0表示无限制
-    maxactive: 5000
+    maxactive: 40960
     #超时时间
     idletimeout: 120
     #秒杀请求队列

@@ -42,7 +42,7 @@ func SetLogConfToEtcd() {
 		SecInfoConf{
 			ProductID: 1029,
 			StartTime: 1594094400,
-			EndTime:   1594353600,
+			EndTime:   1596211200,
 			Status:    0,
 			Total:     1000,
 		},
@@ -52,7 +52,7 @@ func SetLogConfToEtcd() {
 		SecInfoConf{
 			ProductID: 1028,
 			StartTime: 1594094400,
-			EndTime:   1594353600,
+			EndTime:   1596211200,
 			Status:    0,
 			Total:     1000,
 		},
@@ -91,7 +91,7 @@ func setRdist() {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	_, err = conn.Do("hset", "product_num", "1028", 1000)
+	_, err = conn.Do("hset", "product_num", "1028", 200000)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -103,5 +103,5 @@ func setRdist() {
 
 func main() {
 	SetLogConfToEtcd()
-	// setRdist()
+	setRdist()
 }

@@ -19,7 +19,7 @@ func HandleSecKill(req *def.ReqSecKill) (*def.ResultSecKill, error) {
 	h.Write(data)
 	result := &def.ResultSecKill{
 		ProductId: req.ProductID, UserId: req.UserID, Mes: "秒杀成功",
-		Token: hex.EncodeToString(h.Sum(nil)),
+		Token: hex.EncodeToString(h.Sum(nil)), Nance: req.Nance,
 	}
 
 	return result, nil
@@ -29,6 +29,7 @@ func HandleSecKill(req *def.ReqSecKill) (*def.ResultSecKill, error) {
 func reduceStock(pid, num int) error {
 	pidStr := strconv.Itoa(pid)
 	conn := pool.Get()
+	defer conn.Close()
 
 	stock, err := redis.Int(conn.Do("hget", "product_num", pidStr))
 	if stock <= 0 || err != nil {

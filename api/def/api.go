@@ -78,4 +78,5 @@ type ResultSecKill struct {
 	UserId    string
 	Mes       string
 	Token     string
+	Nance     string
 }
